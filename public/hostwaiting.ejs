@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>myWereWolf</title>
+	<script type="text/javascript" src="./jquery/dist/jquery.min.js"></script>
+	<script type="text/javascript" src="/hostwaiting.js"></script>
+</head>
+<body>
+	<h1>Host waiting</h1>
+	<ul id="playerlist">
+		<% for(var i=0;i<players.length;i++){ %>
+			<li> <%= players[i].name %> </li>
+		<% } %>
+	</ul>
+	<p id="pwd"><%= pwd %></p>
+	<p id="id"><%= id %></p>
+	<p id="name"><%= name %></p>
+	<button id="submit">submit</button>
+</body>
+</html>
