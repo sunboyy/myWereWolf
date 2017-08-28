@@ -18,21 +18,18 @@ var randomChar = function(){
 	for(var i=0;i<players.length;i++){
 		charecter.push(allCharName[i]);
 	}
-	//let length = players.length;
-	for(var i=0;i<players.length;i++){
-		match = [];
-		var p = Math.floor(Math.random()*players.length);
-		var ch = Math.floor(Math.random()*players.length);
-		players[i].char = charecter[ch];
+	let length = players.length;
+	for(var i=0;i<length;i++){
+		var p = Math.floor(Math.random()*(length-i));
+		var ch = Math.floor(Math.random()*(length-i));
+		players[p].char = charecter[ch];
 		randomed.push(players[p]);
 		players.splice(p,1);
 		charecter.splice(ch,1);
 	}
+	player = randomed;
 }
 
-var myTrim = function(x){
-	return 	x.replace(":","");
-}
 
 app.use(express.static('./public'));
 
@@ -42,7 +39,7 @@ app.get('/',function(req,res){
 
 app.get('/wait/:name/:id/:char',function(req,res){
 	for(var i=0;i<players.length;i++){
-		if(players[i].id.toString() === myTrim(req.params.id)){
+		if(players[i].id.toString() === req.params.id){
 			res.json({name:req.params.name,id:req.params.id,char:players[i].char});
 		}
 	}
@@ -62,7 +59,7 @@ app.get('/login',function(req,res){
 
 app.post('/host',urlencodeParser,function(req,res){
 	console.log(req.body.pwd);	
-	if(myTrim(req.body.pwd) === PWD){
+	if(req.body.pwd === PWD){
 		console.log("host password is correct");
 		players.push({name:req.body.name,id:playerId,host:true,char:null});
 		res.render('../public/hostwaiting.ejs',{pwd:req.body.pwd,id:playerId,name:req.body.name,players:[]});
@@ -89,11 +86,13 @@ app.get('/host',function(req,res){
 
 app.post('/submit',urlencodeParser,function(req,res){
 	//console.log(req.body.state);
-	gameState = req.body.state;
-	randomChar();
+	//gameState = req.body.state;
+	randomChar();	
+	console.log(randomed);
 	let mydata = randomed.filter(function(player){return player.name === req.body.name;});
 	res.json({data:req.body,char:mydata[0].char});
 });
+
 
 
 app.get('/hostshowchar/:pwd/:name/:id/:char',function(req,res){
