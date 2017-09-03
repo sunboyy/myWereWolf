@@ -3,7 +3,8 @@ var bodyParser = require('body-parser');
 var urlencodeParser = bodyParser.urlencoded({extended: false});
 
 const PWD = "ong";
-var gameState = "waiting"
+var gameState = "waiting";
+var Round = 0;
 
 var app = express();
 var port = 2500;
@@ -27,30 +28,40 @@ var randomChar = function(){
 		players.splice(p,1);
 		charecter.splice(ch,1);
 	}
-	player = randomed;
+	players = randomed;
 }
 
 
 app.use(express.static('./public'));
 
 app.get('/',function(req,res){
-	res.sendFile(__dirname+'/name.html');
+	if(gameState === "waiting"){
+		res.render("../public/name.ejs",{msg:""});
+	}
+	else if(gameState === "start"){
+		res.render("../public/name.ejs",{msg:"The game was started pls wait for next round"});
+	}
 });
 
-app.get('/wait/:name/:id/:char',function(req,res){
+app.get('/wait/:name/:id',function(req,res){
 	for(var i=0;i<players.length;i++){
+		//console.log("hello");
 		if(players[i].id.toString() === req.params.id){
-			res.json({name:req.params.name,id:req.params.id,char:players[i].char});
+			res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round});
 		}
 	}
 	//console.log(req.params.name,req.params.id); 
 });
 
 app.post('/wait',urlencodeParser,function(req,res){
-	players.push({name:req.body.name,id:playerId,host:false,char:null});
-	res.render('../public/wait.ejs',{name:req.body.name,id:playerId,char:null});
-	playerId+=1;
-	console.log(req.body.name);
+	if(gameState === "waiting"){
+		players.push({name:req.body.name,id:playerId,host:false,char:null});
+		res.render('../public/wait.ejs',{name:req.body.name,id:playerId,char:null,round:Round});
+		playerId+=1;
+	}
+	else if(gameState === "start"){
+		res.redirect('/');
+	}
 });
 
 app.get('/login',function(req,res){
@@ -58,7 +69,7 @@ app.get('/login',function(req,res){
 });
 
 app.post('/host',urlencodeParser,function(req,res){
-	console.log(req.body.pwd);	
+	//console.log(req.body.pwd);	
 	if(req.body.pwd === PWD){
 		console.log("host password is correct");
 		players.push({name:req.body.name,id:playerId,host:true,char:null});
@@ -67,6 +78,13 @@ app.post('/host',urlencodeParser,function(req,res){
 	}
 	else{
 		res.render("../public/login.ejs",{pwdst:"password is not correct!"});
+	}
+});
+
+app.get('/hostwait/:pwd/:name/:id/:char',urlencodeParser,function(req,res){
+	gameState = "waiting";
+	if(req.params.pwd === PWD){
+		res.render('../public/hostwaiting.ejs',{pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:[]});
 	}
 });
 
@@ -85,19 +103,25 @@ app.get('/host',function(req,res){
 
 
 app.post('/submit',urlencodeParser,function(req,res){
-	//console.log(req.body.state);
-	//gameState = req.body.state;
+	gameState = "start";
+	Round += 1;
 	randomChar();	
 	console.log(randomed);
 	let mydata = randomed.filter(function(player){return player.name === req.body.name;});
 	res.json({data:req.body,char:mydata[0].char});
 });
 
-
+app.post('/restart',urlencodeParser,function(req,res){
+	console.log(Round);
+});
 
 app.get('/hostshowchar/:pwd/:name/:id/:char',function(req,res){
-	res.render('../public/showchar.ejs',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char});
+	res.render('../public/hostshowchar.ejs',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:Round});
 })
+
+app.get('/showchar/:id/:name/:char',function(req,res){
+	res.render('../public/showchar.ejs',{id:req.params.id,name:req.params.name,char:req.params.char});
+});
 
 app.listen(port,function(){
 	console.log('SERVER IS RUNNING AT PORT : ',port);

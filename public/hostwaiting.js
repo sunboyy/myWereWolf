@@ -5,17 +5,15 @@ $(document).ready(function(){
 	var id = document.getElementById("id");
 	var players = [];
 	$("#submit").click(function(){
-		console.log('submited');
 		$.post("/submit",{state:true,pwd:pwd.innerHTML,name:name.innerHTML,id:id.innerHTML},
 			function(data){
 				window.location = "/hostshowchar/"+data.data.pwd+'/'+data.data.name+'/'+data.data.id+'/'+data.char;
 			}
 		);
 	});
-	//window.location = "http://localhost:2500/host/:"+pwd.innerHTML+"/:"+name.innerHTML+"/:"+id.innerHTML;
-
+	
 	var askServer = function(){
-		setTimeout(function(){
+		setInterval(function(){
 			$.ajax({
 				url:"/host/"+pwd.innerHTML+"/"+name.innerHTML+"/"+id.innerHTML+"/"+null,
 				type: "GET",
@@ -30,7 +28,6 @@ $(document).ready(function(){
 					}
 				}
 			});
-			askServer();
 		},2000)
 	}
 	askServer();
