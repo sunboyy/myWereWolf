@@ -112,6 +112,7 @@ app.post('/submit',urlencodeParser,function(req,res){
 });
 
 app.post('/restart',urlencodeParser,function(req,res){
+	res.json({data:req.body});
 	console.log(Round);
 });
 
