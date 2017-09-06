@@ -3,24 +3,7 @@ $(document).ready(function(){
 	var id = document.getElementById("id");
 	var char = document.getElementById("char");
 	var round = document.getElementById("round");
-	var data = document.getElementById("data");
-	var mydata = null
-	$.ajax({
-		url:"/wait/"+name.innerHTML+"/"+id.innerHTML,
-		type: "GET",	
-		complete: function(data){
-			if(round !== data.responseJSON.round || mydata !== data){
-				char.textContent = data.responseJSON.char;
-				round.textContent = data.responseJSON.round;
-				mydata = data.responseJSON.data;
-				for(var i=0;i<data.responseJSON.data;i++){
-					var item = document.createElement("p");
-					item.textContent = i.name+" : "+i.char;
-					data.appendChild(item);
-				}
-			}					
-		},
-	});
+	var DATA = document.getElementById("data");
 	var askServer = function(){
 		setInterval(function(){
 			$.ajax({
@@ -28,16 +11,16 @@ $(document).ready(function(){
 				type: "GET",
 				complete: function(data){
 					console.log(data.responseJSON);
-					if(round !== data.responseJSON.round){
-						char.textContent = data.responseJSON.char;
-						round.textContent = "Round : "+data.responseJSON.round;
-						mydata = data.responseJSON.data;
-						for(var i=0;i<data.responseJSON.data;i++){
+					char.textContent = data.responseJSON.char;
+					//console.log(round.textContent,data.responseJSON.round.toString());
+					if(round.textContent !== "Round : "+data.responseJSON.round.toString()){
+						for(var i=0;i<data.responseJSON.data.length;i++){
 							var item = document.createElement("p");
-							item.textContent = i.name+" : "+i.char;
-							data.appendChild(item);
-						}
-					}					
+							item.textContent = data.responseJSON.data[i].name+" : "+data.responseJSON.data[i].char;
+							DATA.appendChild(item);
+						}	
+					}
+					round.textContent = "Round : "+data.responseJSON.round;
 				},
 			});
 		},2000)

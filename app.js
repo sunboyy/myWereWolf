@@ -68,16 +68,22 @@ app.get('/login',function(req,res){
 });
 
 app.post('/host',urlencodeParser,function(req,res){
-	//console.log(req.body.pwd);	
-	if(req.body.pwd === PWD){
-		console.log("host password is correct");
-		players.push({name:req.body.name,id:playerId,host:true,char:null});
-		res.render('../public/hostwaiting.ejs',{pwd:req.body.pwd,id:playerId,name:req.body.name,players:[]});
-		playerId+=1;
+	//console.log(req.body.pwd);
+	if(gameState === "waiting"){
+		if(req.body.pwd === PWD){
+			console.log("host password is correct");
+			players.push({name:req.body.name,id:playerId,host:true,char:null});
+			res.render('../public/hostwaiting.ejs',{pwd:req.body.pwd,id:playerId,name:req.body.name,players:[]});
+			playerId+=1;
+		}
+		else{
+			res.render("../public/login.ejs",{pwdst:"password is not correct!"});
+		}	
 	}
 	else{
-		res.render("../public/login.ejs",{pwdst:"password is not correct!"});
+		res.render("../public/login.ejs",{pwdst:"The game was started pls wait for next round"});
 	}
+	
 });
 
 app.get('/hostwait/:pwd/:name/:id/:char',urlencodeParser,function(req,res){
