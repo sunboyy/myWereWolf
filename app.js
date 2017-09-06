@@ -11,7 +11,7 @@ var port = 2500;
 
 var players = [];
 var playerId = 0;
-var allCharName = ['modulator','were wolf','sear','villager','villager','villager','villager'];
+var allCharName = ['modulator','were wolf','were wolf','sear','villager','villager','villager','villager'];
 var charecter = [];
 var randomed = [];
 
@@ -45,9 +45,8 @@ app.get('/',function(req,res){
 
 app.get('/wait/:name/:id',function(req,res){
 	for(var i=0;i<players.length;i++){
-		//console.log("hello");
 		if(players[i].id.toString() === req.params.id){
-			res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round});
+			res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
 		}
 	}
 	//console.log(req.params.name,req.params.id); 
@@ -55,7 +54,7 @@ app.get('/wait/:name/:id',function(req,res){
 
 app.post('/wait',urlencodeParser,function(req,res){
 	if(gameState === "waiting"){
-		players.push({name:req.body.name,id:playerId,host:false,char:null});
+		players.push({name:req.body.name,id:playerId,host:false,char:null,data:null});
 		res.render('../public/wait.ejs',{name:req.body.name,id:playerId,char:null,round:Round});
 		playerId+=1;
 	}
@@ -105,22 +104,47 @@ app.get('/host',function(req,res){
 app.post('/submit',urlencodeParser,function(req,res){
 	gameState = "start";
 	Round += 1;
-	randomChar();	
-	console.log(randomed);
+	randomChar();
+	for(var i=0;i<players.length;i++){
+		let data = null;
+		if(players[i].char === "modulator"){
+			let nonModulator = players.filter(function(item){return item.char !== "modulator"});
+			data = nonModulator.map(function(item){ return {name:item.name,char:item.char} });
+		}
+		else if(players[i].char === "were wolf"){
+			let werewolfs = players.filter(function(item){ return item.id !== players[i].id && item.char === "were wolf"});
+			data = werewolfs.map(function(item){ return {name:item.name,char:item.char} });
+		}
+		players[i].data = data;
+		//console.log(data);
+	}
+	//console.log(randomed);
 	let mydata = randomed.filter(function(player){return player.name === req.body.name;});
 	res.json({data:req.body,char:mydata[0].char});
 });
 
 app.post('/restart',urlencodeParser,function(req,res){
+	for(var i=0;i<players.length;i++){
+		players[i].char = null;
+		players[i].data = null;
+	}
 	res.json({data:req.body});
 	console.log(Round);
 });
 
-app.get('/hostshowchar/:pwd/:name/:id/:char',function(req,res){
-	res.render('../public/hostshowchar.ejs',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:Round});
+app.get('/hostshowchar/:pwd/:name/:id/:char/:data',function(req,res){
+	res.render('../public/hostshowchar.ejs',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:Round,data:req.params.data});
 })
 
-app.get('/showchar/:id/:name/:char',function(req,res){
+app.get('/hostshowchar/:pwd/:name/:id',function(req,res){
+	for(var i=0;i<players.length;i++){
+		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD){
+			res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
+		}
+	}
+});
+
+app.get('/showchar/:id/:name/:char/:data',function(req,res){
 	res.render('../public/showchar.ejs',{id:req.params.id,name:req.params.name,char:req.params.char});
 });
 

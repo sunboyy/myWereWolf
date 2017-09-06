@@ -7,7 +7,7 @@ $(document).ready(function(){
 	$("#submit").click(function(){
 		$.post("/submit",{state:true,pwd:pwd.innerHTML,name:name.innerHTML,id:id.innerHTML},
 			function(data){
-				window.location = "/hostshowchar/"+data.data.pwd+'/'+data.data.name+'/'+data.data.id+'/'+data.char;
+				window.location = "/hostshowchar/"+data.data.pwd+'/'+data.data.name+'/'+data.data.id+'/'+data.char+'/'+data.data.data;
 			}
 		);
 	});

@@ -3,15 +3,22 @@ $(document).ready(function(){
 	var id = document.getElementById("id");
 	var char = document.getElementById("char");
 	var round = document.getElementById("round");
+	var data = document.getElementById("data");
+	var mydata = null
 	$.ajax({
 		url:"/wait/"+name.innerHTML+"/"+id.innerHTML,
-		type: "GET",
+		type: "GET",	
 		complete: function(data){
-			if(round !== data.responseJSON.round){
-						char.textContent = data.responseJSON.char;
-						round.textContent = round.responseJSON.round;
+			if(round !== data.responseJSON.round || mydata !== data){
+				char.textContent = data.responseJSON.char;
+				round.textContent = data.responseJSON.round;
+				mydata = data.responseJSON.data;
+				for(var i=0;i<data.responseJSON.data;i++){
+					var item = document.createElement("p");
+					item.textContent = i.name+" : "+i.char;
+					data.appendChild(item);
 				}
-			//window.location = '/showchar/'+data.responseJSON.id+'/'+data.responseJSON.name+'/'+data.responseJSON.char;					
+			}					
 		},
 	});
 	var askServer = function(){
@@ -24,8 +31,13 @@ $(document).ready(function(){
 					if(round !== data.responseJSON.round){
 						char.textContent = data.responseJSON.char;
 						round.textContent = "Round : "+data.responseJSON.round;
-					}
-					//window.location = '/showchar/'+data.responseJSON.id+'/'+data.responseJSON.name+'/'+data.responseJSON.char;					
+						mydata = data.responseJSON.data;
+						for(var i=0;i<data.responseJSON.data;i++){
+							var item = document.createElement("p");
+							item.textContent = i.name+" : "+i.char;
+							data.appendChild(item);
+						}
+					}					
 				},
 			});
 		},2000)
