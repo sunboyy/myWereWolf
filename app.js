@@ -11,9 +11,46 @@ var port = 2500;
 
 var players = [];
 var playerId = 0;
-var allCharName = ['modulator','were wolf','were wolf','sear','villager','villager','villager','villager'];
+var allCharName = ['modulator','were wolf','sear','villager','villager','villager','villager'];
 var charecter = [];
 var randomed = [];
+
+
+
+setInterval(function(){
+	if(gameState === 'waiting'){
+		for(var i=0;i<players.length;i++){
+			players[i].time-=1000;
+		}
+/*		players = players.filter(function(item){
+			return item.time > 0;
+		});*/
+		for (let i = 0; i < players.length; i++) {
+			if (players[i].time <= 0) {
+				players.splice(i, 1);
+			}
+		}
+	}
+	if(gameState === 'start'){
+		for(var i=0;i<players.length;i++){
+			if(players[i].host){
+				players[i].time-=1.67;
+			}
+		}
+	}
+	if(players.filter(function(item){return item.host}).length === 0 ){
+		gameState = "waiting";
+		Round = 0;
+		players = [];
+		playerId = 0;
+		charecter = [];
+		randomed = [];
+		if(players.length !== 0){
+			console.log(" >> RESART << ")
+		}
+	}
+},1000);
+
 
 var randomChar = function(){
 	for(var i=0;i<players.length;i++){
@@ -44,17 +81,23 @@ app.get('/',function(req,res){
 });
 
 app.get('/wait/:name/:id',function(req,res){
+	let s = 0;
 	for(var i=0;i<players.length;i++){
 		if(players[i].id.toString() === req.params.id){
 			res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
+			players[i].time =  30000;
+			s = 1;
 		}
+	}
+	if( s === 0){
+		res.redirect('/');
 	}
 	//console.log(req.params.name,req.params.id); 
 });
 
 app.post('/wait',urlencodeParser,function(req,res){
 	if(gameState === "waiting"){
-		players.push({name:req.body.name,id:playerId,host:false,char:null,data:null});
+		players.push({name:req.body.name,id:playerId,host:false,char:null,data:null,time:30000});
 		res.render('../public/wait.ejs',{name:req.body.name,id:playerId,char:null,round:Round});
 		playerId+=1;
 	}
@@ -72,7 +115,7 @@ app.post('/host',urlencodeParser,function(req,res){
 	if(gameState === "waiting"){
 		if(req.body.pwd === PWD){
 			console.log("host password is correct");
-			players.push({name:req.body.name,id:playerId,host:true,char:null});
+			players.push({name:req.body.name,id:playerId,host:true,char:null,data:null,time:30000});
 			res.render('../public/hostwaiting.ejs',{pwd:req.body.pwd,id:playerId,name:req.body.name,players:[]});
 			playerId+=1;
 		}
@@ -87,17 +130,27 @@ app.post('/host',urlencodeParser,function(req,res){
 });
 
 app.get('/hostwait/:pwd/:name/:id/:char',urlencodeParser,function(req,res){
-	gameState = "waiting";
-	if(req.params.pwd === PWD){
-		res.render('../public/hostwaiting.ejs',{pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:[]});
+	for(var i=0;i<players.length;i++){
+		gameState = "waiting";
+		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD && players[i].host){
+			players[i].time =  30000;
+			return res.render('../public/hostwaiting.ejs',{pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:[]});
+		}
 	}
 });
 
 app.get('/host/:pwd/:name/:id/:char',function(req,res){
-	if(req.params.pwd === PWD){
-		res.send({pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:players})
+	let s = 0;
+	for(var i=0;i<players.length;i++){
+		gameState = "waiting";
+		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD && players[i].host){
+			players[i].time =  30000;
+			res.send({pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:players})
+			s = 1;
+			return 0;
+		}
 	}
-	else{
+	if(s === 0  ){
 		res.render("../public/login.ejs",{pwdst:"password is not correct!"});
 	}
 });
@@ -108,25 +161,31 @@ app.get('/host',function(req,res){
 
 
 app.post('/submit',urlencodeParser,function(req,res){
-	gameState = "start";
-	Round += 1;
-	randomChar();
-	for(var i=0;i<players.length;i++){
-		let data = null;
-		if(players[i].char === "modulator"){
-			let nonModulator = players.filter(function(item){return item.char !== "modulator"});
-			data = nonModulator.map(function(item){ return {name:item.name,char:item.char} });
+	if(players.length > 3){
+		gameState = "start";
+		Round += 1;
+		randomChar();
+		for(var i=0;i<players.length;i++){
+			let data = null;
+			if(players[i].char === "modulator"){
+				let nonModulator = players.filter(function(item){return item.char !== "modulator"});
+				data = nonModulator.map(function(item){ return {name:item.name,char:item.char} });
+			}
+			else if(players[i].char === "were wolf"){
+				let werewolfs = players.filter(function(item){ return item.id !== players[i].id && item.char === "were wolf"});
+				data = werewolfs.map(function(item){ return {name:item.name,char:item.char} });
+			}
+			players[i].data = data;
+			//console.log(data);
 		}
-		else if(players[i].char === "were wolf"){
-			let werewolfs = players.filter(function(item){ return item.id !== players[i].id && item.char === "were wolf"});
-			data = werewolfs.map(function(item){ return {name:item.name,char:item.char} });
-		}
-		players[i].data = data;
-		//console.log(data);
+		//console.log(randomed);
+		let mydata = randomed.filter(function(player){return player.name === req.body.name;});
+		return res.json({data:req.body,char:mydata[0].char,msg:""});
 	}
-	//console.log(randomed);
-	let mydata = randomed.filter(function(player){return player.name === req.body.name;});
-	res.json({data:req.body,char:mydata[0].char});
+	else{
+		res.json({msg:"players must be more than 5."});
+	}
+	
 });
 
 app.post('/restart',urlencodeParser,function(req,res){
@@ -139,13 +198,19 @@ app.post('/restart',urlencodeParser,function(req,res){
 });
 
 app.get('/hostshowchar/:pwd/:name/:id/:char/:data',function(req,res){
-	res.render('../public/hostshowchar.ejs',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:Round,data:req.params.data});
+	for(var i=0;i<players.length;i++){
+		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD && players[i].host){
+			players[i].time =  30000;
+			return res.render('../public/hostshowchar.ejs',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:Round,data:req.params.data});
+		}
+	}
 })
 
 app.get('/hostshowchar/:pwd/:name/:id',function(req,res){
 	for(var i=0;i<players.length;i++){
-		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD){
-			res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
+		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD && players[i].host){
+			players[i].time =  30000;
+			return res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
 		}
 	}
 });
