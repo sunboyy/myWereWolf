@@ -10,7 +10,7 @@ window.onload = function(){
 				url:"/hostshowchar/"+pwd.innerHTML+"/"+name.innerHTML+"/"+id.innerHTML,
 				type: "GET",
 				complete: function(data){
-					console.log(data.responseJSON);
+					//console.log(data.responseJSON);
 					char.textContent = data.responseJSON.char;
 					DATA.innerHTML = "";
 					for(var i=0;i<data.responseJSON.data.length;i++){

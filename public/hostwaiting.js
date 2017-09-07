@@ -8,7 +8,7 @@ $(document).ready(function(){
 	$("#submit").click(function(){
 		$.post("/submit",{state:true,pwd:pwd.innerHTML,name:name.innerHTML,id:id.innerHTML},
 			function(data){
-				console.log(data.msg);
+				//console.log(data.msg);
 				if(data.msg === ""){
 					window.location = "/hostshowchar/"+data.data.pwd+'/'+data.data.name+'/'+data.data.id+'/'+data.char+'/'+data.data.data;	
 				}
@@ -25,7 +25,7 @@ $(document).ready(function(){
 				url:"/host/"+pwd.innerHTML+"/"+name.innerHTML+"/"+id.innerHTML+"/"+null,
 				type: "GET",
 				complete: function(data){
-					console.log(data.responseJSON.players);
+					//console.log(data.responseJSON.players);
 					if(data.responseJSON.players !== players){
 						players = data.responseJSON.players;
 						$("#playerlist").empty();

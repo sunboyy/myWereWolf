@@ -161,7 +161,8 @@ app.get('/host',function(req,res){
 
 
 app.post('/submit',urlencodeParser,function(req,res){
-	if(players.length > 3){
+	// todos edit player.length
+	if(players.length > 0){
 		gameState = "start";
 		Round += 1;
 		randomChar();
@@ -176,7 +177,6 @@ app.post('/submit',urlencodeParser,function(req,res){
 				data = werewolfs.map(function(item){ return {name:item.name,char:item.char} });
 			}
 			players[i].data = data;
-			//console.log(data);
 		}
 		//console.log(randomed);
 		let mydata = randomed.filter(function(player){return player.name === req.body.name;});
@@ -194,7 +194,7 @@ app.post('/restart',urlencodeParser,function(req,res){
 		players[i].data = null;
 	}
 	res.json({data:req.body});
-	console.log(Round);
+	console.log(" >> Round :",Round," <<");
 });
 
 app.get('/hostshowchar/:pwd/:name/:id/:char/:data',function(req,res){
@@ -220,5 +220,7 @@ app.get('/showchar/:id/:name/:char/:data',function(req,res){
 });
 
 app.listen(port,function(){
+	console.log("");
 	console.log('SERVER IS RUNNING AT PORT : ',port);
+	console.log(" >> WEREWOLFS IS START NOW! <<");
 });

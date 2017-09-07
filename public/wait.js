@@ -10,9 +10,9 @@ $(document).ready(function(){
 				url:"/wait/"+name.innerHTML+"/"+id.innerHTML,
 				type: "GET",
 				complete: function(data){
-					console.log(data.responseJSON);
+					//console.log(data.responseJSON);
 					char.textContent = data.responseJSON.char;
-					//console.log(round.textContent,data.responseJSON.round.toString());
+					DATA.innerHTML = "";
 					if(round.textContent !== "Round : "+data.responseJSON.round.toString()){
 						for(var i=0;i<data.responseJSON.data.length;i++){
 							var item = document.createElement("p");
