@@ -2,14 +2,18 @@
 <html>
 <head>
 	<title>myWereWolf</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="./public/style.css">
 	<script type="text/javascript" src="/name.js"></script>
 </head>
 <body>
-	<h1>host submit</h1>
-	<form id="myform" method="POST" action="host">
-		<input id="playerName" type="text" placeholder="enter your name" name="name">
-		<input id="pwd" type="text" placeholder="enter password" name="pwd">
-		<input type="submit" name="submit">
+	<h1 class="login-header">Host Login</h1>
+	<form class="login" id="myform" method="POST" action="host">
+		<span class="title">UserName</span><br>
+		<input class="input" id="playerName" type="text" placeholder="enter your name" name="name"><br>
+		<span class="title">Password</span><br>
+		<input class="input" id="pwd" type="text" placeholder="enter password" name="pwd"><br>
+		<input class="button submit_btn" type="submit" name="submit">
 	</form>
 </body>
 </html>

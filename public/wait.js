@@ -12,8 +12,8 @@ $(document).ready(function(){
 				complete: function(data){
 					//console.log(data.responseJSON);
 					char.textContent = data.responseJSON.char;
-					DATA.innerHTML = "";
 					if(round.textContent !== "Round : "+data.responseJSON.round.toString()){
+						DATA.innerHTML = "";
 						for(var i=0;i<data.responseJSON.data.length;i++){
 							var item = document.createElement("p");
 							item.textContent = data.responseJSON.data[i].name+" : "+data.responseJSON.data[i].char;
