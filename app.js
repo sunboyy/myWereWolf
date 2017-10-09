@@ -11,7 +11,7 @@ var port = 2500;
 
 var players = [];
 var playerId = 0;
-var allCharName = ['modulator','were wolf','sear','villager','villager','villager','villager'];
+var allCharName = ['modulator','were wolf','bodyguard','villager','villager','villager','were wolf','sear','villager','hunter','villager','villager'];
 var charecter = [];
 var randomed = [];
 
