@@ -1,90 +1,63 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var config = require('./config');
-
-var gameState = "waiting";
-var Round = 0;
+var GameManager = require('./game-manager');
 
 var app = express();
+app.set('view engine', 'ejs');
+app.use(express.static('./public'));
+app.use(bodyParser.urlencoded({extended: false}));
 
-var players = [];
+var gameManager = new GameManager();
 var playerId = 0;
 var allCharName = ['modulator','were wolf','bodyguard','villager','villager','villager','were wolf','sear','villager','hunter','villager','villager'];
 var character = [];
 var randomed = [];
 
-
-
 setInterval(function(){
-	if(gameState === 'waiting'){
-		for(var i=0;i<players.length;i++){
-			players[i].time-=1000;
-		}
-/*		players = players.filter(function(item){
-			return item.time > 0;
-		});*/
-		for (let i = 0; i < players.length; i++) {
-			if (players[i].time <= 0) {
-				players.splice(i, 1);
-			}
-		}
-	}
-	if(gameState === 'start'){
-		for(var i=0;i<players.length;i++){
-			if(players[i].host){
-				players[i].time-=1.67;
-			}
-		}
-	}
-	if(players.filter(function(item){return item.host}).length === 0 ){
-		gameState = "waiting";
-		Round = 0;
-		players = [];
+	gameManager.gameLoop();
+	if(gameManager.players.filter(function(item){return item.host}).length === 0 ){
+		gameManager.reset();
 		playerId = 0;
 		character = [];
 		randomed = [];
-		if(players.length !== 0){
-			console.log(" >> RESART << ")
+		if(gameManager.players.length !== 0){
+			console.log(" >> RESTART << ")
 		}
 	}
 },1000);
 
-
 var randomChar = function(){
-	for(var i=0;i<players.length;i++){
+	for(var i=0;i<gameManager.players.length;i++){
 		character.push(allCharName[i]);
 	}
-	let length = players.length;
+	let length = gameManager.players.length;
 	for(var i=0;i<length;i++){
 		var p = Math.floor(Math.random()*(length-i));
 		var ch = Math.floor(Math.random()*(length-i));
-		players[p].char = character[ch];
-		randomed.push(players[p]);
-		players.splice(p,1);
+		gameManager.players[p].char = character[ch];
+		randomed.push(gameManager.players[p]);
+		gameManager.players.splice(p,1);
 		character.splice(ch,1);
 	}
-	players = randomed;
+	gameManager.players = randomed;
 }
 
-app.set('view engine', 'ejs');
-app.use(express.static('./public'));
-app.use(bodyParser.urlencoded({extended: false}));
-
 app.get('/',function(req,res){
-	if(gameState === "waiting"){
+	if(gameManager.state === "waiting"){
 		res.render("name",{msg:""});
 	}
-	else if(gameState === "start"){
+	else if(gameManager.state === "start"){
 		res.render("name",{msg:"The game was started pls wait for next round"});
 	}
 });
 
 app.get('/wait/:name/:id',function(req,res){
 	let s = 0;
-	for(var i=0;i<players.length;i++){
-		if(players[i].id.toString() === req.params.id){
-			res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
-			players[i].time =  30000;
+	for(var i=0;i<gameManager.players.length;i++){
+		if(gameManager.players[i].id.toString() === req.params.id){
+			res.json({name:req.params.name,id:req.params.id,char:gameManager.players[i].char,round:gameManager.round,data:gameManager.players[i].data});
+			gameManager.players[i].time =  30000;
 			s = 1;
 		}
 	}
@@ -95,12 +68,12 @@ app.get('/wait/:name/:id',function(req,res){
 });
 
 app.post('/wait', function(req,res){
-	if(gameState === "waiting"){
-		players.push({name:req.body.name,id:playerId,host:false,char:null,data:null,time:30000});
-		res.render('wait',{name:req.body.name,id:playerId,char:null,round:Round});
+	if(gameManager.state === "waiting"){
+		gameManager.players.push({name:req.body.name,id:playerId,host:false,char:null,data:null,time:30000});
+		res.render('wait',{name:req.body.name,id:playerId,char:null,round:gameManager.round});
 		playerId+=1;
 	}
-	else if(gameState === "start"){
+	else if(gameManager.state === "start"){
 		res.redirect('/');
 	}
 });
@@ -111,10 +84,10 @@ app.get('/login',function(req,res){
 
 app.post('/host', function(req,res){
 	//console.log(req.body.pwd);
-	if(gameState === "waiting"){
+	if(gameManager.state === "waiting"){
 		if(req.body.pwd === config.PWD){
 			console.log("host password is correct");
-			players.push({name:req.body.name,id:playerId,host:true,char:null,data:null,time:30000});
+			gameManager.players.push({name:req.body.name,id:playerId,host:true,char:null,data:null,time:30000});
 			res.render('hostwaiting',{pwd:req.body.pwd,id:playerId,name:req.body.name,players:[]});
 			playerId+=1;
 		}
@@ -129,10 +102,10 @@ app.post('/host', function(req,res){
 });
 
 app.get('/hostwait/:pwd/:name/:id/:char', function(req,res){
-	for(var i=0;i<players.length;i++){
-		gameState = "waiting";
-		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === config.PWD && players[i].host){
-			players[i].time =  30000;
+	for(var i=0;i<gameManager.players.length;i++){
+		gameManager.state = "waiting";
+		if(gameManager.players[i].id.toString() === req.params.id && gameManager.players[i].name === req.params.name && req.params.pwd === config.PWD && gameManager.players[i].host){
+			gameManager.players[i].time =  30000;
 			return res.render('hostwaiting',{pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:[]});
 		}
 	}
@@ -140,11 +113,11 @@ app.get('/hostwait/:pwd/:name/:id/:char', function(req,res){
 
 app.get('/host/:pwd/:name/:id/:char',function(req,res){
 	let s = 0;
-	for(var i=0;i<players.length;i++){
-		gameState = "waiting";
-		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === config.PWD && players[i].host){
-			players[i].time =  30000;
-			res.send({pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:players})
+	for(var i=0;i<gameManager.players.length;i++){
+		gameManager.state = "waiting";
+		if(gameManager.players[i].id.toString() === req.params.id && gameManager.players[i].name === req.params.name && req.params.pwd === config.PWD && gameManager.players[i].host){
+			gameManager.players[i].time =  30000;
+			res.send({pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:gameManager.players})
 			s = 1;
 			return 0;
 		}
@@ -158,24 +131,22 @@ app.get('/host',function(req,res){
 	res.render("login",{pwdst:"password is not correct!"});
 });
 
-
 app.post('/submit', function(req,res){
 	// todos edit player.length
-	if(players.length > 0){
-		gameState = "start";
-		Round += 1;
+	if(gameManager.players.length > 0){
+		gameManager.start();
 		randomChar();
-		for(var i=0;i<players.length;i++){
+		for(var i=0;i<gameManager.players.length;i++){
 			let data = null;
-			if(players[i].char === "modulator"){
-				let nonModulator = players.filter(function(item){return item.char !== "modulator"});
+			if(gameManager.players[i].char === "modulator"){
+				let nonModulator = gameManager.players.filter(function(item){return item.char !== "modulator"});
 				data = nonModulator.map(function(item){ return {name:item.name,char:item.char} });
 			}
-			else if(players[i].char === "were wolf"){
-				let werewolfs = players.filter(function(item){ return item.id !== players[i].id && item.char === "were wolf"});
+			else if(gameManager.players[i].char === "were wolf"){
+				let werewolfs = gameManager.players.filter(function(item){ return item.id !== gameManager.players[i].id && item.char === "were wolf"});
 				data = werewolfs.map(function(item){ return {name:item.name,char:item.char} });
 			}
-			players[i].data = data;
+			gameManager.players[i].data = data;
 		}
 		//console.log(randomed);
 		let mydata = randomed.filter(function(player){return player.name === req.body.name;});
@@ -188,28 +159,28 @@ app.post('/submit', function(req,res){
 });
 
 app.post('/restart', function(req,res){
-	for(var i=0;i<players.length;i++){
-		players[i].char = null;
-		players[i].data = null;
+	for(var i=0;i<gameManager.players.length;i++){
+		gameManager.players[i].char = null;
+		gameManager.players[i].data = null;
 	}
 	res.json({data:req.body});
-	console.log(" >> Round :",Round," <<");
+	console.log(" >> Round :",gameManager.round," <<");
 });
 
 app.get('/hostshowchar/:pwd/:name/:id/:char/:data',function(req,res){
-	for(var i=0;i<players.length;i++){
-		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === config.PWD && players[i].host){
-			players[i].time =  30000;
-			return res.render('hostshowchar',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:Round,data:req.params.data});
+	for(var i=0;i<gameManager.players.length;i++){
+		if(gameManager.players[i].id.toString() === req.params.id && gameManager.players[i].name === req.params.name && req.params.pwd === config.PWD && gameManager.players[i].host){
+			gameManager.players[i].time =  30000;
+			return res.render('hostshowchar',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:gameManager.round,data:req.params.data});
 		}
 	}
 })
 
 app.get('/hostshowchar/:pwd/:name/:id',function(req,res){
-	for(var i=0;i<players.length;i++){
-		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === config.PWD && players[i].host){
-			players[i].time =  30000;
-			return res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
+	for(var i=0;i<gameManager.players.length;i++){
+		if(gameManager.players[i].id.toString() === req.params.id && gameManager.players[i].name === req.params.name && req.params.pwd === config.PWD && gameManager.players[i].host){
+			gameManager.players[i].time =  30000;
+			return res.json({name:req.params.name,id:req.params.id,char:gameManager.players[i].char,round:gameManager.round,data:gameManager.players[i].data});
 		}
 	}
 });
@@ -219,7 +190,7 @@ app.get('/showchar/:id/:name/:char/:data',function(req,res){
 });
 
 app.listen(config.port,function(){
-	console.log("");
+	console.log();
 	console.log('SERVER IS RUNNING AT PORT : ',config.port);
 	console.log(" >> WEREWOLFS IS START NOW! <<");
 });
