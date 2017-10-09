@@ -68,15 +68,15 @@ var randomChar = function(){
 	players = randomed;
 }
 
-
+app.set('view engine', 'ejs');
 app.use(express.static('./public'));
 
 app.get('/',function(req,res){
 	if(gameState === "waiting"){
-		res.render("../public/name.ejs",{msg:""});
+		res.render("name",{msg:""});
 	}
 	else if(gameState === "start"){
-		res.render("../public/name.ejs",{msg:"The game was started pls wait for next round"});
+		res.render("name",{msg:"The game was started pls wait for next round"});
 	}
 });
 
@@ -98,7 +98,7 @@ app.get('/wait/:name/:id',function(req,res){
 app.post('/wait',urlencodeParser,function(req,res){
 	if(gameState === "waiting"){
 		players.push({name:req.body.name,id:playerId,host:false,char:null,data:null,time:30000});
-		res.render('../public/wait.ejs',{name:req.body.name,id:playerId,char:null,round:Round});
+		res.render('wait',{name:req.body.name,id:playerId,char:null,round:Round});
 		playerId+=1;
 	}
 	else if(gameState === "start"){
@@ -107,7 +107,7 @@ app.post('/wait',urlencodeParser,function(req,res){
 });
 
 app.get('/login',function(req,res){
-	res.render("../public/login.ejs",{pwdst:""});
+	res.render("login",{pwdst:""});
 });
 
 app.post('/host',urlencodeParser,function(req,res){
@@ -116,15 +116,15 @@ app.post('/host',urlencodeParser,function(req,res){
 		if(req.body.pwd === PWD){
 			console.log("host password is correct");
 			players.push({name:req.body.name,id:playerId,host:true,char:null,data:null,time:30000});
-			res.render('../public/hostwaiting.ejs',{pwd:req.body.pwd,id:playerId,name:req.body.name,players:[]});
+			res.render('hostwaiting',{pwd:req.body.pwd,id:playerId,name:req.body.name,players:[]});
 			playerId+=1;
 		}
 		else{
-			res.render("../public/login.ejs",{pwdst:"password is not correct!"});
+			res.render("login",{pwdst:"password is not correct!"});
 		}	
 	}
 	else{
-		res.render("../public/login.ejs",{pwdst:"The game was started pls wait for next round"});
+		res.render("login",{pwdst:"The game was started pls wait for next round"});
 	}
 	
 });
@@ -134,7 +134,7 @@ app.get('/hostwait/:pwd/:name/:id/:char',urlencodeParser,function(req,res){
 		gameState = "waiting";
 		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD && players[i].host){
 			players[i].time =  30000;
-			return res.render('../public/hostwaiting.ejs',{pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:[]});
+			return res.render('hostwaiting',{pwd:req.params.pwd,id:req.params.id,name:req.params.name,players:[]});
 		}
 	}
 });
@@ -151,12 +151,12 @@ app.get('/host/:pwd/:name/:id/:char',function(req,res){
 		}
 	}
 	if(s === 0  ){
-		res.render("../public/login.ejs",{pwdst:"password is not correct!"});
+		res.render("login",{pwdst:"password is not correct!"});
 	}
 });
 
 app.get('/host',function(req,res){
-	res.render("../public/login.ejs",{pwdst:"password is not correct!"});
+	res.render("login",{pwdst:"password is not correct!"});
 });
 
 
@@ -201,7 +201,7 @@ app.get('/hostshowchar/:pwd/:name/:id/:char/:data',function(req,res){
 	for(var i=0;i<players.length;i++){
 		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD && players[i].host){
 			players[i].time =  30000;
-			return res.render('../public/hostshowchar.ejs',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:Round,data:req.params.data});
+			return res.render('hostshowchar',{pwd:req.params.pwd,name:req.params.name,id:req.params.id,char:req.params.char,round:Round,data:req.params.data});
 		}
 	}
 })
@@ -216,7 +216,7 @@ app.get('/hostshowchar/:pwd/:name/:id',function(req,res){
 });
 
 app.get('/showchar/:id/:name/:char/:data',function(req,res){
-	res.render('../public/showchar.ejs',{id:req.params.id,name:req.params.name,char:req.params.char});
+	res.render('showchar',{id:req.params.id,name:req.params.name,char:req.params.char});
 });
 
 app.listen(port,function(){
