@@ -1,25 +1,25 @@
 class GameManager {
     constructor() {
         this.players = [];
+        this.isStarted = false;
         this.playerID = 0;
-        this.state = "waiting";
         this.round = 0;
     }
     reset() {
-        this.state = "waiting";
+        this.isStarted = false;
         this.players = [];
         this.playerID = 0;
         this.round = 0;
     }
     start() {
-        this.state = "start";
+        this.isStarted = true;
         this.round++;
     }
     restart() {
-        this.state = "waiting";
+        this.isStarted = false;
     }
     gameLoop() {
-        if (this.state == "waiting") {
+        if (!this.isStarted) {
             this.players.forEach(function (player) {
                 player.time -= 1000;
             });
@@ -32,7 +32,7 @@ class GameManager {
                 }
             }
         }
-        else if (this.state == "start") {
+        else {
             this.players.forEach(function (player) {
                 if (player.host) {
                     player.time -= 1.67;
