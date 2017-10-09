@@ -10,8 +10,7 @@ app.use(express.static('./public'));
 app.use(bodyParser.urlencoded({extended: false}));
 
 var gameManager = new GameManager();
-var playerId = 0;
-var allCharName = ['modulator','were wolf','bodyguard','villager','villager','villager','were wolf','sear','villager','hunter','villager','villager'];
+var allCharName = ['moderator','were wolf','bodyguard','villager','villager','villager','were wolf','sear','villager','hunter','villager','villager'];
 var character = [];
 var randomed = [];
 
@@ -19,7 +18,6 @@ setInterval(function(){
 	gameManager.gameLoop();
 	if(gameManager.players.filter(function(item){return item.isHost}).length === 0 ){
 		gameManager.reset();
-		playerId = 0;
 		character = [];
 		randomed = [];
 		if(gameManager.players.length !== 0){
@@ -71,10 +69,10 @@ app.get('/wait/:name/:id',function(req,res){
 
 app.post('/wait', function(req,res){
 	if(!gameManager.isStarted){
-		gameManager.players.push(new Player(req.body.name, playerId, false, null, null));
+		let player = new Player(req.body.name, false, null, null);
+		gameManager.players.push(player);
 		//gameManager.players.push({name:req.body.name,id:playerId,host:false,char:null,data:null,time:30000});
-		res.render('wait',{name:req.body.name,id:playerId,char:null,round:gameManager.round});
-		playerId+=1;
+		res.render('wait',{name:req.body.name,id:player.id,char:null,round:gameManager.round});
 	}
 	else {
 		res.redirect('/');
@@ -90,10 +88,10 @@ app.post('/host', function(req,res){
 	if(!gameManager.isStarted){
 		if(req.body.pwd === config.PWD){
 			console.log("host password is correct");
-			gameManager.players.push(new Player(req.body.name, playerId, true, null, null));
+			let player = new Player(req.body.name, true, null, null);
+			gameManager.players.push(player);
 			//gameManager.players.push({name:req.body.name,id:playerId,host:true,char:null,data:null,time:30000});
-			res.render('hostwaiting',{pwd:req.body.pwd,id:playerId,name:req.body.name,players:[]});
-			playerId+=1;
+			res.render('hostwaiting',{pwd:req.body.pwd,id:player.id,name:req.body.name,players:[]});
 		}
 		else{
 			res.render("login",{pwdst:"password is not correct!"});
@@ -142,8 +140,8 @@ app.post('/submit', function(req,res){
 		randomChar();
 		for(var i=0;i<gameManager.players.length;i++){
 			let data = null;
-			if(gameManager.players[i].char === "modulator"){
-				let nonModulator = gameManager.players.filter(function(item){return item.role !== "modulator"});
+			if(gameManager.players[i].char === "moderator"){
+				let nonModulator = gameManager.players.filter(function(item){return item.role !== "moderator"});
 				data = nonModulator.map(function(item){ return {name:item.name,char:item.role} });
 			}
 			else if(gameManager.players[i].char === "were wolf"){

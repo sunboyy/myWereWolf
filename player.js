@@ -1,11 +1,12 @@
 class Player {
-    constructor(name, id, isHost, role, data, time) {
+    constructor(name, isHost, role, data, time) {
         this.name = name;
-        this.id = id;
+        this.id = Player.count;
         this.isHost = isHost;
         this.role = role;
         this.data = data;
         this.time = 30000;
+        Player.count++;
     }
     restart() {
         this.role = null;
@@ -15,4 +16,5 @@ class Player {
         this.time = 30000;
     }
 }
+Player.count = 0;
 module.exports = Player;

@@ -1,15 +1,15 @@
+var Player = require('./player');
 class GameManager {
     constructor() {
         this.players = [];
         this.isStarted = false;
-        this.playerID = 0;
         this.round = 0;
     }
     reset() {
         this.isStarted = false;
         this.players = [];
-        this.playerID = 0;
         this.round = 0;
+        Player.count = 0;
     }
     start() {
         this.isStarted = true;
