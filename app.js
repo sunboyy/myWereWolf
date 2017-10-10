@@ -10,44 +10,18 @@ app.use(express.static('./public'));
 app.use(bodyParser.urlencoded({extended: false}));
 
 var gameManager = new GameManager();
-var allCharName = ['moderator','were wolf','bodyguard','villager','villager','villager','were wolf','sear','villager','hunter','villager','villager'];
-var character = [];
-var randomed = [];
 
 setInterval(function(){
 	gameManager.gameLoop();
 	if(gameManager.players.filter(function(item){return item.isHost}).length === 0 ){
 		gameManager.reset();
-		character = [];
-		randomed = [];
 		if(gameManager.players.length !== 0){
 			console.log(" >> RESTART << ")
 		}
 	}
 },1000);
 
-// var randomChar = function(){
-// 	character = allCharName.slice(0, gameManager.players.length);
-// 	let length = gameManager.players.length;
-// 	for(var i=0;i<length;i++){
-// 		var p = Math.floor(Math.random()*(length-i));
-// 		var ch = Math.floor(Math.random()*(length-i));
-// 		gameManager.players[p].role = character[ch];
-// 		randomed.push(gameManager.players[p]);
-// 		gameManager.players.splice(p,1);
-// 		character.splice(ch,1);
-// 	}
-// 	gameManager.players = randomed;
-// }
-
-app.get('/',function(req,res){
-	if(!gameManager.isStarted){
-		res.render("name",{msg:""});
-	}
-	else {
-		res.render("name",{msg:"The game was started pls wait for next round"});
-	}
-});
+require('./router')(app, gameManager);
 
 app.get('/wait/:name/:id',function(req,res){
 	let found = false;
@@ -69,16 +43,11 @@ app.post('/wait', function(req,res){
 	if(!gameManager.isStarted){
 		let player = new Player(req.body.name, false);
 		gameManager.players.push(player);
-		//gameManager.players.push({name:req.body.name,id:playerId,host:false,char:null,data:null,time:30000});
 		res.render('wait',{name:req.body.name,id:player.id,char:null,round:gameManager.round});
 	}
 	else {
 		res.redirect('/');
 	}
-});
-
-app.get('/login',function(req,res){
-	res.render("login",{pwdst:""});
 });
 
 app.post('/host', function(req,res){
@@ -135,7 +104,6 @@ app.post('/submit', function(req,res){
 	// todos edit player.length
 	if(gameManager.players.length > 0){
 		gameManager.start();
-		//console.log(randomed);
 		let mydata = gameManager.players.filter(function(player){return player.name === req.body.name;});
 		return res.json({data:req.body,char:mydata[0].role,msg:""});
 	}
