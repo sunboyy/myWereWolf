@@ -26,21 +26,19 @@ setInterval(function(){
 	}
 },1000);
 
-var randomChar = function(){
-	for(var i=0;i<gameManager.players.length;i++){
-		character.push(allCharName[i]);
-	}
-	let length = gameManager.players.length;
-	for(var i=0;i<length;i++){
-		var p = Math.floor(Math.random()*(length-i));
-		var ch = Math.floor(Math.random()*(length-i));
-		gameManager.players[p].role = character[ch];
-		randomed.push(gameManager.players[p]);
-		gameManager.players.splice(p,1);
-		character.splice(ch,1);
-	}
-	gameManager.players = randomed;
-}
+// var randomChar = function(){
+// 	character = allCharName.slice(0, gameManager.players.length);
+// 	let length = gameManager.players.length;
+// 	for(var i=0;i<length;i++){
+// 		var p = Math.floor(Math.random()*(length-i));
+// 		var ch = Math.floor(Math.random()*(length-i));
+// 		gameManager.players[p].role = character[ch];
+// 		randomed.push(gameManager.players[p]);
+// 		gameManager.players.splice(p,1);
+// 		character.splice(ch,1);
+// 	}
+// 	gameManager.players = randomed;
+// }
 
 app.get('/',function(req,res){
 	if(!gameManager.isStarted){
@@ -69,7 +67,7 @@ app.get('/wait/:name/:id',function(req,res){
 
 app.post('/wait', function(req,res){
 	if(!gameManager.isStarted){
-		let player = new Player(req.body.name, false, null, null);
+		let player = new Player(req.body.name, false);
 		gameManager.players.push(player);
 		//gameManager.players.push({name:req.body.name,id:playerId,host:false,char:null,data:null,time:30000});
 		res.render('wait',{name:req.body.name,id:player.id,char:null,round:gameManager.round});
@@ -88,7 +86,7 @@ app.post('/host', function(req,res){
 	if(!gameManager.isStarted){
 		if(req.body.pwd === config.PWD){
 			console.log("host password is correct");
-			let player = new Player(req.body.name, true, null, null);
+			let player = new Player(req.body.name, true);
 			gameManager.players.push(player);
 			//gameManager.players.push({name:req.body.name,id:playerId,host:true,char:null,data:null,time:30000});
 			res.render('hostwaiting',{pwd:req.body.pwd,id:player.id,name:req.body.name,players:[]});
@@ -137,22 +135,9 @@ app.post('/submit', function(req,res){
 	// todos edit player.length
 	if(gameManager.players.length > 0){
 		gameManager.start();
-		randomChar();
-		for(var i=0;i<gameManager.players.length;i++){
-			let data = null;
-			if(gameManager.players[i].char === "moderator"){
-				let nonModulator = gameManager.players.filter(function(item){return item.role !== "moderator"});
-				data = nonModulator.map(function(item){ return {name:item.name,char:item.role} });
-			}
-			else if(gameManager.players[i].char === "were wolf"){
-				let werewolfs = gameManager.players.filter(function(item){ return item.id !== gameManager.players[i].id && item.char === "were wolf"});
-				data = werewolfs.map(function(item){ return {name:item.name,char:item.char} });
-			}
-			gameManager.players[i].data = data;
-		}
 		//console.log(randomed);
-		let mydata = randomed.filter(function(player){return player.name === req.body.name;});
-		return res.json({data:req.body,char:mydata[0].char,msg:""});
+		let mydata = gameManager.players.filter(function(player){return player.name === req.body.name;});
+		return res.json({data:req.body,char:mydata[0].role,msg:""});
 	}
 	else{
 		res.json({msg:"players must be more than 5."});
@@ -161,9 +146,7 @@ app.post('/submit', function(req,res){
 });
 
 app.post('/restart', function(req,res){
-	for(var i=0;i<gameManager.players.length;i++){
-		gameManager.players[i].restart();
-	}
+	gameManager.restart();
 	res.json({data:req.body});
 	console.log(" >> Round :",gameManager.round," <<");
 });

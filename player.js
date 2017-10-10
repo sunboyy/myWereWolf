@@ -1,16 +1,16 @@
 class Player {
-    constructor(name, isHost, role, data, time) {
+    constructor(name, isHost) {
         this.name = name;
         this.id = Player.count;
         this.isHost = isHost;
-        this.role = role;
-        this.data = data;
+        this.role = null;
+        this.data = [];
         this.time = 30000;
         Player.count++;
     }
     restart() {
         this.role = null;
-        this.data = null;
+        this.data = [];
     }
     refresh() {
         this.time = 30000;
