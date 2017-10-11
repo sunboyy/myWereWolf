@@ -95,6 +95,10 @@ app.get('/wait/:name/:id',function(req,res){
 	//console.log(req.params.name,req.params.id); 
 });
 
+app.get('/wait',function(req,res){
+	res.redirect('/');
+});
+
 app.post('/wait',urlencodeParser,function(req,res){
 	if(gameState === "waiting"){
 		players.push({name:req.body.name,id:playerId,host:false,char:null,data:null,time:30000});
@@ -212,7 +216,7 @@ app.get('/hostshowchar/:pwd/:name/:id/:char/:data',function(req,res){
 app.get('/hostshowchar/:pwd/:name/:id',function(req,res){
 	for(var i=0;i<players.length;i++){
 		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD && players[i].host){
-			players[i].time =  30000;
+			players[i].time =  8000;
 			return res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
 		}
 	}
