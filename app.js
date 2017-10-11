@@ -108,9 +108,6 @@ app.post('/wait',urlencodeParser,function(req,res){
 	else if(gameState === "start"){
 		res.redirect('/');
 	}
-	else{
-		re
-	}
 });
 
 app.get('/login',function(req,res){
