@@ -39,6 +39,10 @@ app.get('/wait/:name/:id',function(req,res){
 	//console.log(req.params.name,req.params.id); 
 });
 
+app.get('/wait',function(req,res){
+	res.redirect('/');
+});
+
 app.post('/wait', function(req,res){
 	if(!gameManager.isStarted){
 		let player = new Player(req.body.name, false);
@@ -129,10 +133,17 @@ app.get('/hostshowchar/:pwd/:name/:id/:char/:data',function(req,res){
 })
 
 app.get('/hostshowchar/:pwd/:name/:id',function(req,res){
+<<<<<<< HEAD
 	for(var i=0;i<gameManager.players.length;i++){
 		if(gameManager.players[i].id.toString() === req.params.id && gameManager.players[i].name === req.params.name && req.params.pwd === config.PWD && gameManager.players[i].isHost){
 			gameManager.players[i].refresh();
 			return res.json({name:req.params.name,id:req.params.id,char:gameManager.players[i].role,round:gameManager.round,data:gameManager.players[i].data});
+=======
+	for(var i=0;i<players.length;i++){
+		if(players[i].id.toString() === req.params.id && players[i].name === req.params.name && req.params.pwd === PWD && players[i].host){
+			players[i].time =  8000;
+			return res.json({name:req.params.name,id:req.params.id,char:players[i].char,round:Round,data:players[i].data});
+>>>>>>> 193c937786914ca9ceff863bcd6360c590fcd31d
 		}
 	}
 });
